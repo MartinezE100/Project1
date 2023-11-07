@@ -1,0 +1,423 @@
+.include "constants.inc"
+.include "header.inc"
+
+.segment "CODE"
+.proc irq_handler
+  RTI
+.endproc
+
+.proc nmi_handler
+  LDA #$00
+  STA OAMADDR
+  LDA #$02
+  STA OAMDMA
+	LDA #$00
+	STA $2005
+	STA $2005
+  RTI
+.endproc
+
+.import reset_handler
+
+.export main
+.proc main
+  ; write a palette
+  LDX PPUSTATUS
+  LDX #$3f
+  STX PPUADDR
+  LDX #$00
+  STX PPUADDR
+load_palettes:
+  LDA palettes,X
+  STA PPUDATA
+  INX
+  CPX #$20
+  BNE load_palettes
+
+  ; write sprite data
+  LDX #$00
+load_sprites:
+  LDA sprites,X
+  STA $0200,X
+  INX
+  CPX #$10
+  BNE load_sprites
+
+	; write nametables
+	; top left snowflakes - row 1 (top)
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$c0
+	STA PPUADDR
+	LDX #$42
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$88
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$d4
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$dc
+	STA PPUADDR
+	STX PPUDATA
+
+  ; top left snowflakes - row 2
+	LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$46
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$4e
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$5a
+	STA PPUADDR
+	STX PPUDATA
+
+  ; top left snowflakes - row 3
+	LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$81
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$b6
+	STA PPUADDR
+	STX PPUDATA
+
+  ; top left snowflakes - row 4 (bottom)
+	LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$04
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$37
+	STA PPUADDR
+	STX PPUDATA
+
+  ; top right snowflakes - row 1 (top)
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$c1
+	STA PPUADDR
+	LDX #$43
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$89
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$d5
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$dd
+	STA PPUADDR
+	STX PPUDATA
+
+  ; top right snowflakes - row 2
+	LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$47
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$4f
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$5b
+	STA PPUADDR
+	STX PPUDATA
+
+; top right snowflakes - row 3
+	LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$82
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$b7
+	STA PPUADDR
+	STX PPUDATA
+
+; top right snowflakes - row 4 (bottom)
+	LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$05
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$38
+	STA PPUADDR
+	STX PPUDATA
+
+	; bottom left snowflakes - row 1 (top)
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$e0
+	STA PPUADDR
+	LDX #$52
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$a8
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$f4
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$fc
+	STA PPUADDR
+	STX PPUDATA
+
+  ; bottom left snowflakes - row 2
+	LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$66
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$6e
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$7a
+	STA PPUADDR
+	STX PPUDATA
+
+  ; bottom left snowflakes - row 3
+	LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$a1
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$d6
+	STA PPUADDR
+	STX PPUDATA
+
+  ; bottom left snowflakes - row 4 (bottom)
+	LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$24
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$57
+	STA PPUADDR
+	STX PPUDATA
+
+	; bottom right snowflakes - row 1 (top)
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$e1
+	STA PPUADDR
+	LDX #$53
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$a9
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$f5
+	STA PPUADDR
+	STX PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$20
+	STA PPUADDR
+	LDA #$fd
+	STA PPUADDR
+	STX PPUDATA
+
+  ; bottom right snowflakes - row 2
+	LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$67
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$6f
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$7b
+	STA PPUADDR
+	STX PPUDATA
+
+  ; bottom right snowflakes - row 3
+	LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$a2
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$21
+	STA PPUADDR
+	LDA #$d7
+	STA PPUADDR
+	STX PPUDATA
+
+  ; bottom right snowflakes - row 4 (bottom)
+	LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$25
+	STA PPUADDR
+	STX PPUDATA
+
+  LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$58
+	STA PPUADDR
+	STX PPUDATA
+
+	; finally, attribute table
+	; LDA PPUSTATUS
+	; LDA #$23
+	; STA PPUADDR
+	; LDA #$ca
+	; STA PPUADDR
+	; LDA #%00000000
+	; STA PPUDATA
+
+	; LDA PPUSTATUS
+	; LDA #$23
+	; STA PPUADDR
+	; LDA #$e0
+	; STA PPUADDR
+	; LDA #%00000000
+	; STA PPUDATA
+
+vblankwait:       ; wait for another vblank before continuing
+  BIT PPUSTATUS
+  BPL vblankwait
+
+  LDA #%10000000  ; turn on NMIs, sprites use first pattern table
+  STA PPUCTRL
+  LDA #%00011110  ; turn on screen
+  STA PPUMASK
+
+forever:
+  JMP forever
+.endproc
+
+.segment "VECTORS"
+.addr nmi_handler, reset_handler, irq_handler
+
+.segment "RODATA"
+palettes:
+.byte $21, $16, $17, $20
+.byte $21, $00, $06, $30
+.byte $21, $17, $28, $0f
+.byte $21, $09, $19, $29
+
+.byte $21, $2d, $10, $15
+.byte $21, $09, $19, $29
+.byte $21, $09, $19, $29
+.byte $21, $09, $19, $29
+
+sprites:
+
+.segment "CHR"
+.incbin "background.chr"
