@@ -2256,6 +2256,31 @@ load_sprites:
 	STA PPUADDR
 	STX PPUDATA
 
+	; Color Change
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$e9
+	STA PPUADDR
+	LDA #%11111111
+	STA PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$ee
+	STA PPUADDR
+	LDA #%10001000
+	STA PPUDATA
+
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$ef
+	STA PPUADDR
+	LDA #%00100010
+	STA PPUDATA
+
 vblankwait:       ; wait for another vblank before continuing
   BIT PPUSTATUS
   BPL vblankwait
