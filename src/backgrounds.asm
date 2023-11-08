@@ -1,6 +1,11 @@
 .include "constants.inc"
 .include "header.inc"
 
+.segment "ZEROPAGE"
+player_x: .res 1
+player_y: .res 1
+.exportzp player_x, player_y
+
 .segment "CODE"
 .proc irq_handler
   RTI
@@ -11,9 +16,13 @@
   STA OAMADDR
   LDA #$02
   STA OAMDMA
-	LDA #$00
-	STA $2005
-	STA $2005
+
+  ; update tiles *after* DMA transfer
+  JSR draw_player
+
+  LDA #$00
+  STA $2005
+  STA $2005
   RTI
 .endproc
 
@@ -33,15 +42,6 @@ load_palettes:
   INX
   CPX #$20
   BNE load_palettes
-
-  ; write sprite data
-  LDX #$00
-load_sprites:
-  LDA sprites,X
-  STA $0200,X
-  INX
-  CPX #$10
-  BNE load_sprites
 
 	; Nametables
 
@@ -2296,6 +2296,82 @@ forever:
   JMP forever
 .endproc
 
+.proc draw_player
+  ; save registers
+  PHP
+  PHA
+  TXA
+  PHA
+  TYA
+  PHA
+
+  ; write player tile numbers
+  LDA #$29
+  STA $0201
+  LDA #$2a
+  STA $0205
+  LDA #$2b
+  STA $0209
+  LDA #$2c
+  STA $020d
+
+  ; write player tile attributes
+  ; use palette 0
+  LDA #$00
+  STA $0202
+  STA $0206
+  STA $020a
+  STA $020e
+
+  ; store tile locations
+  ; top left tile:
+  LDA player_y
+  STA $0200
+  LDA player_x
+  STA $0203
+
+  ; top right tile (x + 8):
+  LDA player_y
+  STA $0204
+  LDA player_x
+  CLC
+  ADC #$08
+  STA $0207
+
+  ; bottom left tile (y + 8):
+  LDA player_y
+  CLC
+  ADC #$08
+  STA $0208
+  LDA player_x
+  STA $020b
+
+  ; bottom right tile (x + 8, y + 8)
+  LDA player_y
+  CLC
+  ADC #$08
+  STA $020c
+  LDA player_x
+  CLC
+  ADC #$08
+  STA $020f
+
+  ; restore registers and return
+  PLA
+  TAY
+  PLA
+  TAX
+  PLA
+  PLP
+  RTS
+.endproc
+
+
+
+
+
+
+
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler
 
@@ -2306,12 +2382,10 @@ palettes:
 .byte $21, $17, $28, $2a ; second tree pallete
 .byte $21, $09, $19, $29 ; first tree pallete
 
-.byte $21, $2d, $10, $15
+.byte $21, $16, $17, $20
+.byte $21, $00, $06, $30
 .byte $21, $09, $19, $29
 .byte $21, $09, $19, $29
-.byte $21, $09, $19, $29
-
-sprites:
 
 .segment "CHR"
 .incbin "background.chr"
