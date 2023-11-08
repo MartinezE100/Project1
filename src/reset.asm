@@ -32,9 +32,9 @@ vblankwait2:
 	BPL vblankwait2
 
 	; initialize zero-page values
-	LDA #$80
+	LDA #$75
 	STA player_x
-	LDA #$a0
+	LDA #$c0
 	STA player_y
 
   JMP main
