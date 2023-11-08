@@ -2256,7 +2256,8 @@ load_sprites:
 	STA PPUADDR
 	STX PPUDATA
 
-	; Color Change
+	; attribute tables
+	; left tree
 	LDA PPUSTATUS
 	LDA #$23
 	STA PPUADDR
@@ -2265,6 +2266,7 @@ load_sprites:
 	LDA #%11111111
 	STA PPUDATA
 
+	; right tree
 	LDA PPUSTATUS
 	LDA #$23
 	STA PPUADDR
@@ -2299,10 +2301,10 @@ forever:
 
 .segment "RODATA"
 palettes:
-.byte $21, $16, $17, $20
-.byte $21, $00, $06, $30
-.byte $21, $17, $28, $0f
-.byte $21, $09, $19, $29
+.byte $21, $16, $17, $20 ; main background pallete
+.byte $21, $00, $06, $30 
+.byte $21, $17, $28, $2a ; second tree pallete
+.byte $21, $09, $19, $29 ; first tree pallete
 
 .byte $21, $2d, $10, $15
 .byte $21, $09, $19, $29
