@@ -2256,7 +2256,8 @@ load_sprites:
 	STA PPUADDR
 	STX PPUDATA
 
-	; Color Change
+	; attribute tables
+	; left tree
 	LDA PPUSTATUS
 	LDA #$23
 	STA PPUADDR
@@ -2265,6 +2266,7 @@ load_sprites:
 	LDA #%11111111
 	STA PPUDATA
 
+	; right tree
 	LDA PPUSTATUS
 	LDA #$23
 	STA PPUADDR
