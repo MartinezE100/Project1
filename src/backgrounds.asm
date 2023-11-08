@@ -1,6 +1,11 @@
 .include "constants.inc"
 .include "header.inc"
 
+.segment "ZEROPAGE"
+player_x: .res 1
+player_y: .res 1
+.exportzp player_x, player_y
+
 .segment "CODE"
 .proc irq_handler
   RTI
