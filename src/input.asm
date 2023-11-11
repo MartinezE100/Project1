@@ -77,25 +77,41 @@ forever:
   TYA
   PHA
 
-  LDA pad1        ; Load button presses
-  AND #BTN_LEFT   ; Filter out all but Left
-  BEQ check_right ; If result is zero, left not pressed
-  DEC player_x  ; If the branch is not taken, move player left
+  LDA pad1          ; Load button presses
+  AND #BTN_LEFT     ; Filter out all but Left
+  BEQ check_right   ; If result is zero, left not pressed
+  LDA player_x      ; Load current player x position
+  CMP #0           ; Compare with left edge of the screen
+  BEQ no_left_move  ; If at the left edge, don't move left
+  DEC player_x      ; Otherwise, move player left
+no_left_move:
 check_right:
   LDA pad1
   AND #BTN_RIGHT
   BEQ check_up
+  LDA player_x
+  CMP #240          ; Compare with right edge of the screen
+  BEQ no_right_move ; If at the right edge, don't move right
   INC player_x
+no_right_move:
 check_up:
   LDA pad1
   AND #BTN_UP
   BEQ check_down
+  LDA player_y
+  CMP #10          ; Compare with top edge of the screen
+  BEQ no_up_move   ; If at the top edge, don't move up
   DEC player_y
+no_up_move:
 check_down:
   LDA pad1
   AND #BTN_DOWN
   BEQ done_checking
+  LDA player_y
+  CMP #192        ; Compare with bottom edge of the screen (adjust if needed)
+  BEQ no_down_move ; If at the bottom edge, don't move down
   INC player_y
+no_down_move:
 done_checking:
   PLA ; Done with updates, restore registers
   TAY ; and return to where we called this
