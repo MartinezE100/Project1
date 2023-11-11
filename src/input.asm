@@ -116,22 +116,25 @@ done_checking:
   PHA
 
   ; write player tile numbers
-  LDA #$29
+  LDA #$44
   STA $0201
-  LDA #$2a
+  LDA #$4d
   STA $0205
-  LDA #$2b
+  LDA #$46
   STA $0209
-  LDA #$2c
+  LDA #$47
   STA $020d
+  LDA #$61
+  STA $0211
 
   ; write player tile attributes
-  ; use palette 0
-  LDA #$00
+  ; use palette 1
+  LDA #$01
   STA $0202
   STA $0206
   STA $020a
   STA $020e
+  STA $0212
 
   ; store tile locations
   ; top left tile:
@@ -156,7 +159,7 @@ done_checking:
   LDA player_x
   STA $020b
 
-  ; bottom right tile (x + 8, y + 8)
+  ; bottom middle tile (x + 8, y + 8)
   LDA player_y
   CLC
   ADC #$08
@@ -165,6 +168,16 @@ done_checking:
   CLC
   ADC #$08
   STA $020f
+
+  ; bottom right tile (x + 16, y + 8)
+  LDA player_y
+  CLC
+  ADC #$08
+  STA $0210
+  LDA player_x
+  CLC
+  ADC #$16
+  STA $0213
 
   ; restore registers and return
   PLA
@@ -192,4 +205,4 @@ palettes:
 .byte $21, $09, $19, $29
 
 .segment "CHR"
-.incbin "background.chr"
+.incbin "graphics.chr"
