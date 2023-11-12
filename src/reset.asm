@@ -1,7 +1,7 @@
 .include "constants.inc"
 
 .segment "ZEROPAGE"
-.importzp player_x, player_y, jumping, jump_height
+.importzp player_x, player_y, jumping, jump_height, attacking
 
 .segment "CODE"
 .import main

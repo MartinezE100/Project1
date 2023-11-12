@@ -82,7 +82,8 @@ forever:
 
   LDA attacking      ; Check if the player is currently attacking 
   BEQ check_jumping  ; If not attacking, check if jumping
-
+  
+check_jumping:
   LDA jumping        ; Check if the player is currently jumping
   BEQ check_ground   ; If not jumping, check if on the ground
 
