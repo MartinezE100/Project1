@@ -6,7 +6,9 @@ player_x: .res 1
 player_y: .res 1
 player_dir: .res 1
 pad1: .res 1
-.exportzp player_x, player_y, pad1
+jumping: .res 1
+jump_height: .res 1
+.exportzp player_x, player_y, pad1, jumping, jump_height
 
 .segment "CODE"
 .proc irq_handler
@@ -77,13 +79,59 @@ forever:
   TYA
   PHA
 
+  LDA jumping        ; Check if the player is currently jumping
+  BEQ check_ground   ; If not jumping, check if on the ground
+
+  LDA player_y
+  SEC
+  SBC jump_height ; Subtract the jump height from the current y position
+  STA player_y
+
+  LDA jump_height  ; Update jump height (simulate gravity)
+  SEC
+  SBC #1
+  STA jump_height
+
+  LDA player_y       ; Check if the player is back on the ground
+  CMP #192           ; Adjust this value based on your ground level
+  BCC not_on_ground
+
+  STA player_y       ; Set player on the ground
+  LDA #$00
+  STA jumping
+
+not_on_ground:
+  ; Additional check to prevent going through the floor
+  LDA player_y
+  CMP #192           ; Adjust this value based on your ground level
+  BCS set_on_ground  ; If player_y is below ground level, set it to ground level
+
+check_ground:
+  LDA pad1          ; Load button presses
+  AND #BTN_UP       ; Filter out all but Up
+  BEQ check_left    ; If result is zero, Up not pressed
+  LDA jumping       ; Check if the player is already jumping
+  BNE no_jump       ; If jumping, don't jump again
+
+  LDA #$0a          ; Set the jump height (adjust as needed)
+  STA jump_height
+  LDA #$01          ; Set the jumping flag
+  STA jumping
+
+set_on_ground:
+  LDA #$c0           ; Set player_y to the ground level (adjust as needed)
+  STA player_y
+
+no_jump:
+check_left:
   LDA pad1          ; Load button presses
   AND #BTN_LEFT     ; Filter out all but Left
   BEQ check_right   ; If result is zero, left not pressed
   LDA player_x      ; Load current player x position
-  CMP #0           ; Compare with left edge of the screen
+  CMP #0            ; Compare with left edge of the screen
   BEQ no_left_move  ; If at the left edge, don't move left
   DEC player_x      ; Otherwise, move player left
+  DEC player_x      ; Increase the decrement to move faster
 no_left_move:
 check_right:
   LDA pad1
@@ -93,6 +141,7 @@ check_right:
   CMP #240          ; Compare with right edge of the screen
   BEQ no_right_move ; If at the right edge, don't move right
   INC player_x
+  INC player_x      ; Increase the increment to move faster
 no_right_move:
 check_up:
   LDA pad1
@@ -140,8 +189,8 @@ done_checking:
   STA $0209
   LDA #$47
   STA $020d
-  LDA #$61
-  STA $0211
+  ; LDA #$61
+  ; STA $0211
 
   ; write player tile attributes
   ; use palette 1
@@ -150,7 +199,7 @@ done_checking:
   STA $0206
   STA $020a
   STA $020e
-  STA $0212
+  ; STA $0212
 
   ; store tile locations
   ; top left tile:
@@ -186,14 +235,14 @@ done_checking:
   STA $020f
 
   ; bottom right tile (x + 16, y + 8)
-  LDA player_y
-  CLC
-  ADC #$08
-  STA $0210
-  LDA player_x
-  CLC
-  ADC #$16
-  STA $0213
+  ; LDA player_y
+  ; CLC
+  ; ADC #$08
+  ; STA $0210
+  ; LDA player_x
+  ; CLC
+  ; ADC #$16
+  ; STA $0213
 
   ; restore registers and return
   PLA
