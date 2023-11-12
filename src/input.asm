@@ -141,20 +141,22 @@ check_left:
   AND #BTN_LEFT     ; Filter out all but Left
   BEQ check_right   ; If result is zero, left not pressed
   LDA player_x      ; Load current player x position
-  CMP #0            ; Compare with left edge of the screen
-  BEQ no_left_move  ; If at the left edge, don't move left
-  DEC player_x      ; Otherwise, move player left
-  DEC player_x      ; Increase the decrement to move faster
+  CMP #2            ; Compare with left edge of the screen
+  BCC no_left_move  ; If less, branch to no_left_move
+  SEC
+  SBC #2
+  STA player_x
 no_left_move:
 check_right:
-  LDA pad1
-  AND #BTN_RIGHT
-  BEQ check_up
-  LDA player_x
-  CMP #240          ; Compare with right edge of the screen
-  BEQ no_right_move ; If at the right edge, don't move right
-  INC player_x
-  INC player_x      ; Increase the increment to move faster
+  LDA pad1          ; Load button presses
+  AND #BTN_RIGHT    ; Filter out all but Right
+  BEQ check_up      ; If result is zero, right not pressed
+  LDA player_x      ; Load current player x position
+  CMP #238          ; Compare with right edge of the screen - 2
+  BCS no_right_move ; If greater or equal, branch to no_right_move
+  SEC
+  ADC #1
+  STA player_x
 no_right_move:
 check_up:
   LDA pad1
