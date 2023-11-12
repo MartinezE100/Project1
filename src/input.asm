@@ -8,7 +8,8 @@ player_dir: .res 1
 pad1: .res 1
 jumping: .res 1
 jump_height: .res 1
-.exportzp player_x, player_y, pad1, jumping, jump_height
+attacking: .res 1
+.exportzp player_x, player_y, pad1, jumping, jump_height, attacking
 
 .segment "CODE"
 .proc irq_handler
@@ -79,6 +80,9 @@ forever:
   TYA
   PHA
 
+  LDA attacking      ; Check if the player is currently attacking 
+  BEQ check_jumping  ; If not attacking, check if jumping
+
   LDA jumping        ; Check if the player is currently jumping
   BEQ check_ground   ; If not jumping, check if on the ground
 
@@ -123,6 +127,15 @@ set_on_ground:
   STA player_y
 
 no_jump:
+check_attack:
+  LDA pad1          ; Load button presses
+  AND #BTN_A        ; Filter out all but the attack button
+  BEQ check_left    ; If result is zero, attack not pressed
+  LDA attacking     ; Check if the player is already attacking
+  BNE no_attack     ; If already attacking, skip attack initiation
+
+
+no_attack:
 check_left:
   LDA pad1          ; Load button presses
   AND #BTN_LEFT     ; Filter out all but Left
