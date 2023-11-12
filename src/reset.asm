@@ -39,6 +39,7 @@ vblankwait2:
 	LDA #$00
 	STA jumping
 	STA jump_height
+	STA attacking
 
   JMP main
 .endproc
