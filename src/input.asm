@@ -144,11 +144,11 @@ check_right:
 
   ; Check if the character is already walking
   LDA character_state
-  CMP #$01
+  CMP #WALK_STATE
   BEQ no_right_move ; If walking, don't change state
 
   ; Set character state to walking
-  LDA #$01
+  LDA #$WALK_STATE
   STA character_state
 
   ; Reset animation delay counter
@@ -168,7 +168,7 @@ no_right_move:
 
 set_idle_state:
   ; Set character state to idle
-  LDA #$00
+  LDA #IDLE_STATE
   STA character_state
   JMP check_up
 check_up:
@@ -224,7 +224,7 @@ done_checking:
 
   ; Check the character state
   LDA character_state
-  CMP #$00  ; Check if the character is in the idle state
+  CMP #IDLE_STATE  ; Check if the character is in the idle state
   BEQ idle_state
 
   ; Write player tile numbers for the current animation frame (walking)
@@ -236,16 +236,7 @@ done_checking:
   STA $0209
   LDA walking_animation_frames + 3, X
   STA $020D
-
-  ; Write player tile attributes
-  ; Use palette 1
-  LDA #$01
-  STA $0202
-  STA $0206
-  STA $020A
-  STA $020E
-
-  JMP done_drawing
+  JMP write_attributes
 
 idle_state:
   ; Write player tile numbers for the idle frame
@@ -257,7 +248,9 @@ idle_state:
   STA $0209
   LDA idle_animation_frames + 3, X
   STA $020D
+  JMP write_attributes
 
+write_attributes:
   ; Write player tile attributes
   ; Use palette 1
   LDA #$01
