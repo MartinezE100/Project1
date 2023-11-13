@@ -11,7 +11,7 @@ jump_height: .res 1
 frame_counter: .res 1
 animation_delay_counter: .res 1
 character_state: .res 1
-.exportzp player_x, player_y, pad1, jumping, jump_height, frame_counter, animation_delay_counter, character_state
+.exportzp player_x, player_y, player_dir, pad1, jumping, jump_height, frame_counter, animation_delay_counter, character_state
 
 .segment "CODE"
 .proc irq_handler
@@ -130,30 +130,55 @@ check_left:
   LDA pad1          ; Load button presses
   AND #BTN_LEFT     ; Filter out all but Left
   BEQ check_right   ; If result is zero, left not pressed
-  LDA player_x      ; Load current player x position
-  CMP #2            ; Compare with left edge of the screen
-  BCC no_left_move  ; If less, branch to no_left_move
-  SEC
-  SBC #2
-  STA player_x
-no_left_move:
-check_right:
-  LDA pad1          ; Load button presses
-  AND #BTN_RIGHT    ; Filter out all but Right
-  BEQ set_idle_state      ; If result is zero, right not pressed
 
   ; Check if the character is already walking
   LDA character_state
-  CMP #$01
+  CMP #WALK_STATE
+  BEQ no_left_move ; If walking, don't change state
+
+  ; Set character state to walking
+  LDA #WALK_STATE
+  STA character_state
+
+  ; Set player direction to left
+  LDA #LEFT_DIRECTION
+  STA player_dir
+
+  ; Reset animation delay counter
+  ; LDA #0
+  ; STA animation_delay_counter
+
+no_left_move:
+  ; Check screen boundary before changing position
+  LDA player_x      ; Load current player x position
+  CMP #2            ; Compare with left edge of the screen
+  BCC done_left_check  ; If less, branch to done_left_check
+  SEC
+  SBC #2
+  STA player_x
+done_left_check:
+JMP check_up
+check_right:
+  LDA pad1          ; Load button presses
+  AND #BTN_RIGHT    ; Filter out all but Right
+  BEQ set_idle_state   ; If result is zero, right not pressed
+
+  ; Check if the character is already walking
+  LDA character_state
+  CMP #WALK_STATE
   BEQ no_right_move ; If walking, don't change state
 
   ; Set character state to walking
-  LDA #$01
+  LDA #WALK_STATE
   STA character_state
 
+  ; Set player direction to right
+  LDA #RIGHT_DIRECTION
+  STA player_dir
+
   ; Reset animation delay counter
-  LDA #0
-  STA animation_delay_counter
+  ; LDA #0
+  ; STA animation_delay_counter
 no_right_move:
   ; Check screen boundary before changing position
   LDA player_x      ; Load current player x position
@@ -168,9 +193,9 @@ no_right_move:
 
 set_idle_state:
   ; Set character state to idle
-  LDA #$00
+  LDA #IDLE_STATE
   STA character_state
-  JMP check_up
+
 check_up:
   LDA pad1
   AND #BTN_UP
@@ -212,9 +237,9 @@ done_checking:
   INC animation_delay_counter
 
   ; Compare with your desired delay value
-  LDA animation_delay_counter
-  CMP #5
-  BNE skip_animation_update
+  ; LDA animation_delay_counter
+  ; CMP #5
+  ; BNE skip_animation_update
 
   ; Determine the frame of the walking animation
   LDA frame_counter
@@ -222,21 +247,71 @@ done_checking:
   ASL A        ; Multiply by 2 (since each frame is 2 bytes)
   TAX
 
+  ; Check the character direction
+  LDA player_dir
+  CMP #LEFT_DIRECTION  ; Check if facing left
+  BEQ facing_left  ; If true, jump to facing left logic
+
+  ; If not facing left, assume facing right
   ; Check the character state
   LDA character_state
-  CMP #$00  ; Check if the character is in the idle state
-  BEQ idle_state
+  CMP #WALK_STATE  ; Check if the character is in the walking state
+  BEQ right_walking_state
 
-  ; Write player tile numbers for the current animation frame (walking)
-  LDA walking_animation_frames, X
+  ; If not walking, assume idle state for right-facing frames
+  ; Write player tile numbers for the current animation frame (idle)
+  LDA right_idle_animation_frames, X
   STA $0201
-  LDA walking_animation_frames + 1, X
+  LDA right_idle_animation_frames + 1, X
   STA $0205
-  LDA walking_animation_frames + 2, X
+  LDA right_idle_animation_frames + 2, X
   STA $0209
-  LDA walking_animation_frames + 3, X
+  LDA right_idle_animation_frames + 3, X
   STA $020D
+  JMP write_attributes
 
+right_walking_state:
+  ; Write player tile numbers for the left-facing walking frame
+  LDA right_walking_animation_frames, X
+  STA $0201
+  LDA right_walking_animation_frames + 1, X
+  STA $0205
+  LDA right_walking_animation_frames + 2, X
+  STA $0209
+  LDA right_walking_animation_frames + 3, X
+  STA $020D
+  JMP write_attributes
+
+facing_left:
+  ; Check the character state for left-facing frames
+  LDA character_state
+  CMP #WALK_STATE  ; Check if the character is in the walking state
+  BEQ left_walking_state
+
+  ; If not walking, assume idle state for left-facing frames
+  LDA left_idle_animation_frames, X
+  STA $0201
+  LDA left_idle_animation_frames + 1, X
+  STA $0205
+  LDA left_idle_animation_frames + 2, X
+  STA $0209
+  LDA left_idle_animation_frames + 3, X
+  STA $020D
+  JMP write_attributes
+
+left_walking_state:
+  ; Write player tile numbers for the left-facing walking frame
+  LDA left_walking_animation_frames, X
+  STA $0201
+  LDA left_walking_animation_frames + 1, X
+  STA $0205
+  LDA left_walking_animation_frames + 2, X
+  STA $0209
+  LDA left_walking_animation_frames + 3, X
+  STA $020D
+  JMP write_attributes
+
+write_attributes:
   ; Write player tile attributes
   ; Use palette 1
   LDA #$01
@@ -245,31 +320,10 @@ done_checking:
   STA $020A
   STA $020E
 
-  JMP done_drawing
-
-idle_state:
-  ; Write player tile numbers for the idle frame
-  LDA idle_animation_frames, X
-  STA $0201
-  LDA idle_animation_frames + 1, X
-  STA $0205
-  LDA idle_animation_frames + 2, X
-  STA $0209
-  LDA idle_animation_frames + 3, X
-  STA $020D
-
-  ; Write player tile attributes
-  ; Use palette 1
-  LDA #$01
-  STA $0202
-  STA $0206
-  STA $020A
-  STA $020E
-
-done_drawing:
-  ; Reset the animation delay counter
-  LDA #0
-  STA animation_delay_counter
+; done_drawing:
+;   ; Reset the animation delay counter
+;   LDA #0
+;   STA animation_delay_counter
 
 skip_animation_update:
   ; store tile locations
@@ -332,12 +386,19 @@ palettes:
 .byte $21, $09, $19, $29
 .byte $21, $09, $19, $29
 
-idle_animation_frames:
+right_idle_animation_frames:
 .byte $44, $4d, $46, $47  ; Frame 0
 
-walking_animation_frames:
+right_walking_animation_frames:
 .byte $44, $4d, $46, $47  ; Frame 0
 .byte $4c, $4d, $4e, $4f  ; Frame 1
+
+left_idle_animation_frames:
+.byte $8a, $8b, $80, $81  ; Frame 0
+
+left_walking_animation_frames:
+.byte $8a, $8b, $80, $81  ; Frame 0
+.byte $8a, $83, $88, $89  ; Frame 1
 
 .segment "CHR"
 .incbin "graphics.chr"
