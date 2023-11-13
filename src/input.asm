@@ -8,7 +8,9 @@ player_dir: .res 1
 pad1: .res 1
 jumping: .res 1
 jump_height: .res 1
-.exportzp player_x, player_y, pad1, jumping, jump_height
+frame_counter: .res 1
+animation_delay_counter: .res 1
+.exportzp player_x, player_y, pad1, jumping, jump_height, frame_counter, animation_delay_counter
 
 .segment "CODE"
 .proc irq_handler
@@ -182,27 +184,43 @@ done_checking:
   TYA
   PHA
 
-  ; write player tile numbers
-  LDA #$44
-  STA $0201
-  LDA #$4d
-  STA $0205
-  LDA #$46
-  STA $0209
-  LDA #$47
-  STA $020d
-  ; LDA #$61
-  ; STA $0211
+  ; Increment the animation delay counter
+  INC animation_delay_counter
 
-  ; write player tile attributes
-  ; use palette 1
+  ; Compare with your desired delay value
+  LDA animation_delay_counter
+  CMP #5
+  BNE skip_animation_update
+
+  ; Determine the frame of the walking animation
+  LDA frame_counter
+  AND #$02     ; Use the last bit to cycle through 0 to 2
+  ASL A        ; Multiply by 2 (since each frame is 2 bytes)
+  TAX
+
+  ; Write player tile numbers for the current animation frame
+  LDA walking_animation_frames, X
+  STA $0201
+  LDA walking_animation_frames + 1, X
+  STA $0205
+  LDA walking_animation_frames + 2, X
+  STA $0209
+  LDA walking_animation_frames + 3, X
+  STA $020D
+
+  ; Write player tile attributes
+  ; Use palette 1
   LDA #$01
   STA $0202
   STA $0206
-  STA $020a
-  STA $020e
-  ; STA $0212
+  STA $020A
+  STA $020E
 
+  ; Reset the animation delay counter
+  LDA #0
+  STA animation_delay_counter
+
+skip_animation_update:
   ; store tile locations
   ; top left tile:
   LDA player_y
@@ -236,15 +254,7 @@ done_checking:
   ADC #$08
   STA $020f
 
-  ; bottom right tile (x + 16, y + 8)
-  ; LDA player_y
-  ; CLC
-  ; ADC #$08
-  ; STA $0210
-  ; LDA player_x
-  ; CLC
-  ; ADC #$16
-  ; STA $0213
+  INC frame_counter
 
   ; restore registers and return
   PLA
@@ -270,6 +280,10 @@ palettes:
 .byte $21, $00, $06, $30
 .byte $21, $09, $19, $29
 .byte $21, $09, $19, $29
+
+walking_animation_frames:
+.byte $44, $4d, $46, $47  ; Frame 0
+.byte $4c, $4d, $4e, $4f  ; Frame 1
 
 .segment "CHR"
 .incbin "graphics.chr"
