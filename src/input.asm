@@ -98,6 +98,7 @@ end_attack_animation:
   STA attack_animation
   BRA check_jumping
 
+check_jumping:
   LDA jumping        ; Check if the player is currently jumping
   BEQ check_ground   ; If not jumping, check if on the ground
 
@@ -256,19 +257,37 @@ done_checking:
   CMP #$00  ; Check if the character is in the idle state
   BEQ idle_state
 
+  ; Check the character state
+  LDA character_state
+  CMP #02  ; Check if the character is in the attack state
+  BEQ attack_state
   ; Check if the character is attacking 
-  LDA attacking
-  BEQ not_attacking
+  ;LDA attacking
+  ;BEQ not_attacking
 
+attack_state:
   ; Write player tile numbers for the current attack animation frame
   LDA attack_animation_frames, X
-  STA $
+  STA $0201
   LDA attack_animation_frames + 1, X
-  STA $
+  STA $0205
   LDA attack_animation_frames + 2, X
-  STA $
+  STA $0209
   LDA attack_animation_frames + 3, X
-  STA $
+  STA $020D
+
+
+   ; Write sword sprite tile numbers next to the player
+  LDA sword_sprite_frames, X
+  STA $0211
+  LDA sword_sprite_frames + 1, X
+  STA $0215
+  LDA sword_sprite_frames + 2, X
+  STA $0219
+  LDA sword_sprite_frames + 3, X
+  STA $021D
+
+  JMP done_drawing
 
   not_attacking:
   ; Write player tile numbers for the current animation frame (walking)
@@ -280,6 +299,13 @@ done_checking:
   STA $0209
   LDA walking_animation_frames + 3, X
   STA $020D
+
+  ; Write sword sprite tile numbers next to the player (make it invisible)
+  LDA #0
+  STA $0211
+  STA $0215
+  STA $0219
+  STA $021D
 
   ; Write player tile attributes
   ; Use palette 1
@@ -384,6 +410,10 @@ walking_animation_frames:
 .byte $4c, $4d, $4e, $4f  ; Frame 1
 
 attack_animation_frames:
+.byte $48, $49, $4a, $4b  ; Frame 0
+
+sword_sprite_frames:
+.byte $50, $a7, $60, $61  ; Frame 0
 
 .segment "CHR"
 .incbin "graphics.chr"
