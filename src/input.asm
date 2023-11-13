@@ -10,7 +10,8 @@ jumping: .res 1
 jump_height: .res 1
 frame_counter: .res 1
 animation_delay_counter: .res 1
-.exportzp player_x, player_y, pad1, jumping, jump_height, frame_counter, animation_delay_counter
+character_state: .res 1
+.exportzp player_x, player_y, pad1, jumping, jump_height, frame_counter, animation_delay_counter, character_state
 
 .segment "CODE"
 .proc irq_handler
@@ -139,14 +140,37 @@ no_left_move:
 check_right:
   LDA pad1          ; Load button presses
   AND #BTN_RIGHT    ; Filter out all but Right
-  BEQ check_up      ; If result is zero, right not pressed
+  BEQ set_idle_state      ; If result is zero, right not pressed
+
+  ; Check if the character is already walking
+  LDA character_state
+  CMP #$01
+  BEQ no_right_move ; If walking, don't change state
+
+  ; Set character state to walking
+  LDA #$01
+  STA character_state
+
+  ; Reset animation delay counter
+  LDA #0
+  STA animation_delay_counter
+no_right_move:
+  ; Check screen boundary before changing position
   LDA player_x      ; Load current player x position
   CMP #238          ; Compare with right edge of the screen - 2
-  BCS no_right_move ; If greater or equal, branch to no_right_move
+  BCS check_up ; If greater or equal, don't move right
+
+  ; Add your RIGHT movement logic here
   SEC
   ADC #1
   STA player_x
-no_right_move:
+  JMP check_up
+
+set_idle_state:
+  ; Set character state to idle
+  LDA #$00
+  STA character_state
+  JMP check_up
 check_up:
   LDA pad1
   AND #BTN_UP
@@ -198,7 +222,12 @@ done_checking:
   ASL A        ; Multiply by 2 (since each frame is 2 bytes)
   TAX
 
-  ; Write player tile numbers for the current animation frame
+  ; Check the character state
+  LDA character_state
+  CMP #$00  ; Check if the character is in the idle state
+  BEQ idle_state
+
+  ; Write player tile numbers for the current animation frame (walking)
   LDA walking_animation_frames, X
   STA $0201
   LDA walking_animation_frames + 1, X
@@ -216,6 +245,28 @@ done_checking:
   STA $020A
   STA $020E
 
+  JMP done_drawing
+
+idle_state:
+  ; Write player tile numbers for the idle frame
+  LDA idle_animation_frames, X
+  STA $0201
+  LDA idle_animation_frames + 1, X
+  STA $0205
+  LDA idle_animation_frames + 2, X
+  STA $0209
+  LDA idle_animation_frames + 3, X
+  STA $020D
+
+  ; Write player tile attributes
+  ; Use palette 1
+  LDA #$01
+  STA $0202
+  STA $0206
+  STA $020A
+  STA $020E
+
+done_drawing:
   ; Reset the animation delay counter
   LDA #0
   STA animation_delay_counter
@@ -244,7 +295,7 @@ skip_animation_update:
   LDA player_x
   STA $020b
 
-  ; bottom middle tile (x + 8, y + 8)
+  ; bottom right tile (x + 8, y + 8)
   LDA player_y
   CLC
   ADC #$08
@@ -280,6 +331,9 @@ palettes:
 .byte $21, $00, $06, $30
 .byte $21, $09, $19, $29
 .byte $21, $09, $19, $29
+
+idle_animation_frames:
+.byte $44, $4d, $46, $47  ; Frame 0
 
 walking_animation_frames:
 .byte $44, $4d, $46, $47  ; Frame 0
