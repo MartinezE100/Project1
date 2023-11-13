@@ -11,7 +11,9 @@ jump_height: .res 1
 frame_counter: .res 1
 animation_delay_counter: .res 1
 character_state: .res 1
-.exportzp player_x, player_y, pad1, jumping, jump_height, frame_counter, animation_delay_counter, character_state
+attacking: .res 1
+attack_animation: .res 1
+.exportzp player_x, player_y, pad1, jumping, jump_height, frame_counter, animation_delay_counter, character_state, attacking, attack_animation
 
 .segment "CODE"
 .proc irq_handler
@@ -82,6 +84,20 @@ forever:
   TYA
   PHA
 
+  LDA attacking      ; Check if the player is currently attacking 
+  BEQ check_jumping  ; If not attacking, check if jumping
+
+  LDA attack_animation     ; Check the attack animation counter
+  BEQ end_attack_animation ; If the animation is finished, end attack state
+
+  DEC attack_animation     ; Decrease the attack animation counter
+
+end_attack_animation:
+  LDA #$00                 ; Reset attack state and animation counter
+  STA attacking
+  STA attack_animation
+  BRA check_jumping
+
   LDA jumping        ; Check if the player is currently jumping
   BEQ check_ground   ; If not jumping, check if on the ground
 
@@ -126,6 +142,19 @@ set_on_ground:
   STA player_y
 
 no_jump:
+check_attack:
+  LDA pad1          ; Load button presses
+  AND #BTN_A        ; Filter out all but the attack button
+  BEQ check_left    ; If result is zero, attack not pressed
+  LDA attacking     ; Check if the player is already attacking
+  BNE no_attack     ; If already attacking, skip attack initiation
+
+  LDA #$05          ; Set the attack animation duration (adjust as needed)
+  STA attack_animation ; Set the attack animation counter
+  LDA #$01          ; Set the attacking flag
+  STA attacking
+
+no_attack:
 check_left:
   LDA pad1          ; Load button presses
   AND #BTN_LEFT     ; Filter out all but Left
@@ -227,6 +256,21 @@ done_checking:
   CMP #$00  ; Check if the character is in the idle state
   BEQ idle_state
 
+  ; Check if the character is attacking 
+  LDA attacking
+  BEQ not_attacking
+
+  ; Write player tile numbers for the current attack animation frame
+  LDA attack_animation_frames, X
+  STA $
+  LDA attack_animation_frames + 1, X
+  STA $
+  LDA attack_animation_frames + 2, X
+  STA $
+  LDA attack_animation_frames + 3, X
+  STA $
+
+  not_attacking:
   ; Write player tile numbers for the current animation frame (walking)
   LDA walking_animation_frames, X
   STA $0201
@@ -338,6 +382,8 @@ idle_animation_frames:
 walking_animation_frames:
 .byte $44, $4d, $46, $47  ; Frame 0
 .byte $4c, $4d, $4e, $4f  ; Frame 1
+
+attack_animation_frames:
 
 .segment "CHR"
 .incbin "graphics.chr"
