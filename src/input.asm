@@ -130,17 +130,34 @@ check_left:
   LDA pad1          ; Load button presses
   AND #BTN_LEFT     ; Filter out all but Left
   BEQ check_right   ; If result is zero, left not pressed
+
+  ; Check if the character is already walking
+  LDA character_state
+  CMP #WALK_STATE
+  BEQ no_left_move ; If walking, don't change state
+
+  ; Set character state to walking
+  LDA #WALK_STATE
+  STA character_state
+
+  ; Reset animation delay counter
+  LDA #0
+  STA animation_delay_counter
+
+no_left_move:
+  ; Check screen boundary before changing position
   LDA player_x      ; Load current player x position
   CMP #2            ; Compare with left edge of the screen
-  BCC no_left_move  ; If less, branch to no_left_move
+  BCC done_left_check  ; If less, branch to done_left_check
   SEC
   SBC #2
   STA player_x
-no_left_move:
+done_left_check:
+JMP check_up
 check_right:
   LDA pad1          ; Load button presses
   AND #BTN_RIGHT    ; Filter out all but Right
-  BEQ set_idle_state      ; If result is zero, right not pressed
+  BEQ set_idle_state   ; If result is zero, right not pressed
 
   ; Check if the character is already walking
   LDA character_state
@@ -148,7 +165,7 @@ check_right:
   BEQ no_right_move ; If walking, don't change state
 
   ; Set character state to walking
-  LDA #$WALK_STATE
+  LDA #WALK_STATE
   STA character_state
 
   ; Reset animation delay counter
@@ -170,7 +187,7 @@ set_idle_state:
   ; Set character state to idle
   LDA #IDLE_STATE
   STA character_state
-  JMP check_up
+
 check_up:
   LDA pad1
   AND #BTN_UP
