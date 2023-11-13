@@ -111,7 +111,7 @@ not_on_ground:
 
 check_ground:
   LDA pad1          ; Load button presses
-  AND #BTN_UP       ; Filter out all but Up
+  AND #BTN_A       ; Filter out all but Up
   BEQ check_left    ; If result is zero, Up not pressed
   LDA jumping       ; Check if the player is already jumping
   BNE no_jump       ; If jumping, don't jump again
@@ -203,7 +203,7 @@ check_up:
   LDA player_y
   CMP #10          ; Compare with top edge of the screen
   BEQ no_up_move   ; If at the top edge, don't move up
-  DEC player_y
+  ; DEC player_y
 no_up_move:
 check_down:
   LDA pad1

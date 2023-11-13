@@ -42,8 +42,6 @@ vblankwait2:
 	STA frame_counter
 	STA character_state
 	STA player_dir
-	LDA #0
 	STA animation_delay_counter
-
   JMP main
 .endproc
