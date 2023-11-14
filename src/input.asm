@@ -85,6 +85,18 @@ forever:
   LDA jumping        ; Check if the player is currently jumping
   BEQ check_ground   ; If not jumping, check if on the ground
 
+  ; Write player tile numbers for the jumping frame
+  LDA jumping_animation_frames, X
+  STA $0201
+  LDA jumping_animation_frames + 1, X
+  STA $0205
+  LDA jumping_animation_frames + 2, X
+  STA $0209
+  LDA jumping_animation_frames + 3, X
+  STA $020D
+  JMP write_attributes
+
+
   LDA player_y
   SEC
   SBC jump_height ; Subtract the jump height from the current y position
@@ -221,6 +233,30 @@ done_checking:
   TAX
   PLA
   PLP
+  RTS
+.endproc
+
+.proc collision_detection
+  ; Calculate tile positions for the player and the specified tile
+  LDA player_x
+  LSR  ; Divide by 2
+  STA $00  ; Store the player's current X position
+
+  LDA player_y
+  LSR  ; Divide by 2
+  STA $01  ; Store the player's current Y position
+
+  ; Verification for when the player's position overlaps with the platform tile
+  LDA $00  ; Load player's tile position in X
+  CMP #10  ; Compare with the X position of the platform tile
+  BNE no_collision_x  ; If it's not the same then no collision happens
+
+  LDA $01  ; Load player's tile position in Y
+  CMP #21  ; Compare with the Y position of the platform tile
+  BNE no_collision_y  ; If it's not the same then no collision happens
+
+no_collision_y:
+no_collision_x:
   RTS
 .endproc
 
@@ -399,6 +435,9 @@ left_idle_animation_frames:
 left_walking_animation_frames:
 .byte $8a, $8b, $80, $81  ; Frame 0
 .byte $8a, $83, $88, $89  ; Frame 1
+
+jumping_animation_frames:
+.byte $58, $59, $5a, $5b  ; Frame 0
 
 .segment "CHR"
 .incbin "graphics.chr"
