@@ -11,7 +11,8 @@ jump_height: .res 1
 frame_counter: .res 1
 animation_delay_counter: .res 1
 character_state: .res 1
-.exportzp player_x, player_y, player_dir, pad1, jumping, jump_height, frame_counter, animation_delay_counter, character_state
+attacking: .res 1
+.exportzp player_x, player_y, player_dir, pad1, jumping, jump_height, frame_counter, animation_delay_counter, character_state, attacking
 
 .segment "CODE"
 .proc irq_handler
@@ -85,6 +86,10 @@ forever:
   LDA jumping        ; Check if the player is currently jumping
   BEQ check_ground   ; If not jumping, check if on the ground
 
+  LDA attacking      ; Check if the player is currently attacking
+  BEQ check_jumping  ; If not attacking, check if jumping
+
+
   ; Write player tile numbers for the jumping frame
   LDA jumping_animation_frames, X
   STA $0201
@@ -123,7 +128,7 @@ not_on_ground:
 
 check_ground:
   LDA pad1          ; Load button presses
-  AND #BTN_A       ; Filter out all but Up
+  AND #BTN_A        ; Filter out all but Up
   BEQ check_left    ; If result is zero, Up not pressed
   LDA jumping       ; Check if the player is already jumping
   BNE no_jump       ; If jumping, don't jump again
@@ -138,6 +143,19 @@ set_on_ground:
   STA player_y
 
 no_jump:
+check_attack:
+  LDA pad1          ; Load button presses
+  AND #BTN_B        ; Filter out all but the attack button
+  BEQ check_left    ; If result is zero, attack not pressed
+  LDA attacking     ; Check if the player is already attacking
+  BNE no_attack     ; If already attacking, skip attack initiation
+
+  ; Check if the character is already attacking
+  LDA character_state
+  CMP #ATTACK_STATE
+  BEQ attacking
+
+no_attack:
 check_left:
   LDA pad1          ; Load button presses
   AND #BTN_LEFT     ; Filter out all but Left
@@ -347,6 +365,53 @@ left_walking_state:
   STA $020D
   JMP write_attributes
 
+right_attack_state:
+  ; Write player tile numbers for the current right-facing attack frame
+  LDA right_attack_animation_frames, X
+  STA $0201
+  LDA right_attack_animation_frames + 1, X
+  STA $0205
+  LDA right_attack_animation_frames + 2, X
+  STA $0209
+  LDA right_attack_animation_frames + 3, X
+  STA $020D
+  JMP write_attributes
+
+   ; Write sword sprite tile numbers next to the player
+  LDA right_sword_sprite_frames, X
+  STA $0211
+  LDA right_sword_sprite_frames + 1, X
+  STA $0215
+  LDA right_sword_sprite_frames + 2, X
+  STA $0219
+  LDA right_sword_sprite_frames + 3, X
+  STA $021D
+  JMP write_attributes
+
+left_attack_state:
+   ; Write player tile numbers for the current left-facing attack frame
+  LDA left_attack_animation_frames, X
+  STA $0201
+  LDA left_attack_animation_frames + 1, X
+  STA $0205
+  LDA left_attack_animation_frames + 2, X
+  STA $0209
+  LDA left_attack_animation_frames + 3, X
+  STA $020D
+  JMP write_attributes
+
+   ; Write sword sprite tile numbers next to the player
+  LDA left_sword_sprite_frames, X
+  STA $0211
+  LDA left_sword_sprite_frames + 1, X
+  STA $0215
+  LDA left_sword_sprite_frames + 2, X
+  STA $0219
+  LDA left_sword_sprite_frames + 3, X
+  STA $021D
+  JMP write_attributes
+
+
 write_attributes:
   ; Write player tile attributes
   ; Use palette 1
@@ -422,6 +487,8 @@ palettes:
 .byte $21, $09, $19, $29
 .byte $21, $09, $19, $29
 
+;sprite in frame format: .byte (Up Left), (Up Right), (Down Left), (Down Right)
+
 right_idle_animation_frames:
 .byte $44, $4d, $46, $47  ; Frame 0
 
@@ -438,6 +505,24 @@ left_walking_animation_frames:
 
 jumping_animation_frames:
 .byte $58, $59, $5a, $5b  ; Frame 0
+
+right_attack_animation_frames:
+.byte $48, $49, $4a, $4b  ; Frame 0 (Pulls out sword)
+.byte $44, $4d, $46, $47  ; Frame 1 (Returns to right idle sprite)
+
+right_sword_sprite_frames:
+.byte $50, $a7, $60, $61  ; Frame 0 (Sword is visible)
+.byte $c5, $c5, $c5, $c5  ; Frame 1 (Turns sword invisible)
+
+left_attack_animation_frames:
+.byte $82, $83, $84, $85  ; Frame 0 (Pulls out sword)
+.byte $8A, $8B, $80, $81  ; Frame 1 (Returns to left idle sprite)
+
+left_sword_sprite_frames:
+.byte $90, $91, $A0, $A1  ; Frame 0 (Sword is visible)
+.byte $c5, $c5, $c5, $c5  ; Frame 1 (Turns sword invisible)
+
+
 
 .segment "CHR"
 .incbin "graphics.chr"

@@ -1,7 +1,7 @@
 .include "constants.inc"
 
 .segment "ZEROPAGE"
-.importzp player_x, player_y, player_dir, jumping, jump_height, frame_counter, animation_delay_counter, character_state
+.importzp player_x, player_y, player_dir, jumping, jump_height, frame_counter, animation_delay_counter, character_state, attacking
 
 .segment "CODE"
 .import main
@@ -43,5 +43,6 @@ vblankwait2:
 	STA character_state
 	STA player_dir
 	STA animation_delay_counter
+	STA attacking
   JMP main
 .endproc
