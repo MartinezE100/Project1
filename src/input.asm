@@ -142,6 +142,7 @@ set_on_ground:
   LDA #$c0           ; Set player_y to the ground level (adjust as needed)
   STA player_y
 
+
 no_jump:
 check_attack:
   LDA pad1          ; Load button presses
@@ -254,28 +255,29 @@ done_checking:
   RTS
 .endproc
 
-.proc collision_detection
+;.proc collision_detection
   ; Calculate tile positions for the player and the specified tile
-  LDA player_x
-  LSR  ; Divide by 2
-  STA $00  ; Store the player's current X position
+  ;LDA player_x
+  ;LSR  ; Divide by 2 to convert pixel coordinates to tile coordinates
+  ;STA $00  ; Store the player's current X position
 
-  LDA player_y
-  LSR  ; Divide by 2
-  STA $01  ; Store the player's current Y position
+  ;LDA player_y
+  ;LSR  ; Divide by 2 to convert pixel coordinates to tile coordinates
+  ;STA $01  ; Store the player's current Y position
 
   ; Verification for when the player's position overlaps with the platform tile
-  LDA $00  ; Load player's tile position in X
-  CMP #10  ; Compare with the X position of the platform tile
-  BNE no_collision_x  ; If it's not the same then no collision happens
+  ;LDA $00  ; Load player's tile position in X
+  ;CMP #10  ; Compare with the X position of the platform tile
+  ;BNE no_collision_x  ; If it's not the same then no collision happens
 
-  LDA $01  ; Load player's tile position in Y
-  CMP #21  ; Compare with the Y position of the platform tile
-  BNE no_collision_y  ; If it's not the same then no collision happens
+  ;LDA $01  ; Load player's tile position in Y
+  ;CMP #21  ; Compare with the Y position of the platform tile
+  ;BNE no_collision_y  ; If it's not the same then no collision happens
 
-no_collision_y:
-no_collision_x:
-  RTS
+;no_collision_y:
+;no_collision_x:
+  ;RTS
+;
 .endproc
 
 .proc draw_player
@@ -428,6 +430,7 @@ write_attributes:
 
 skip_animation_update:
   ; store tile locations
+
   ; top left tile:
   LDA player_y
   STA $0200
