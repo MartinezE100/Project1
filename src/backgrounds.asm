@@ -2217,6 +2217,152 @@
 	STA PPUADDR
 	STX PPUDATA
 
+	; Link walking right sprite Up-Left tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$07
+	STA PPUADDR
+	LDX #$4C
+	STX PPUDATA
+
+	; Link walking right sprite Up-Right tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$08
+	STA PPUADDR
+	LDX #$4D
+	STX PPUDATA
+
+	; Link walking right sprite Down-Left tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$27
+	STA PPUADDR
+	LDX #$4E
+	STX PPUDATA
+
+	; Link walking right sprite Down-Right tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$28
+	STA PPUADDR
+	LDX #$4F
+	STX PPUDATA
+
+	; Link walking left sprite Up-Left tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$01
+	STA PPUADDR
+	LDX #$8a
+	STX PPUDATA
+
+	; Link walking left sprite Up-Right tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$02
+	STA PPUADDR
+	LDX #$8b
+	STX PPUDATA
+
+	; Link walking left sprite Down-Left tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$21
+	STA PPUADDR
+	LDX #$88
+	STX PPUDATA
+
+	; Link walking left sprite Down-Right tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$22
+	STA PPUADDR
+	LDX #$89
+	STX PPUDATA
+
+
+	; Link death sprite Up-Left tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$1D
+	STA PPUADDR
+	LDX #$55
+	STX PPUDATA
+
+	; Link death sprite Up-Right tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$1E
+	STA PPUADDR
+	LDX #$57
+	STX PPUDATA
+
+	; Link death sprite Down-Left tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$3D
+	STA PPUADDR
+	LDX #$54
+	STX PPUDATA
+
+	; Link death sprite Down-Right tile
+	LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$3E
+	STA PPUADDR
+	LDX #$56
+	STX PPUDATA
+
+	; Link jump sprite Up-Left tile
+	LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$d6
+	STA PPUADDR
+	LDX #$58
+	STX PPUDATA
+
+	; Link jump sprite Up-Right tile
+	LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$d7
+	STA PPUADDR
+	LDX #$59
+	STX PPUDATA
+
+	; Link jump sprite Down-Left tile 
+	LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$f6
+	STA PPUADDR
+	LDX #$5a
+	STX PPUDATA
+
+	; Link jump sprite Down-Right tile
+	LDA PPUSTATUS
+	LDA #$22
+	STA PPUADDR
+	LDA #$f7
+	STA PPUADDR
+	LDX #$5b
+	STX PPUDATA
+
+
 	; attribute tables
 	; left tree
 	LDA PPUSTATUS
